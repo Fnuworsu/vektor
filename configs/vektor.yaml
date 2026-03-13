@@ -1,0 +1,21 @@
+backend:
+  type: redis
+  address: "localhost:6379"
+  password: ""
+  db: 0
+  dial_timeout_ms: 500
+  read_timeout_ms: 100
+  write_timeout_ms: 100
+  pool_size: 20
+
+proxy:
+  listen_addr: ":6380"
+
+coordinator:
+  prefetch_workers: 8
+  prefetch_threshold: 0.65
+  max_prefetch_queue_depth: 1024
+
+engine:
+  markov_order: 2
+  max_tracked_keys: 100000
