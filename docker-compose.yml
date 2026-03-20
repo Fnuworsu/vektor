@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  vektor-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["/app/proxy"]
+    ports:
+      - "6380:6380"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_ADDR=redis:6379
+
+  vektor-coordinator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["/app/coordinator"]
+    ports:
+      - "9090:9090"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_ADDR=redis:6379
