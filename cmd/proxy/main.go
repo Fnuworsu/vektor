@@ -2,26 +2,34 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Fnuworsu/vektor/internal/backend"
+	"github.com/Fnuworsu/vektor/internal/events"
+	"github.com/Fnuworsu/vektor/internal/proxy"
 	"gopkg.in/yaml.v3"
 )
 
+type ProxyConfig struct {
+	ListenAddr string `yaml:"listen_addr"`
+}
+
 type FullConfig struct {
 	Backend backend.Config `yaml:"backend"`
+	Proxy   ProxyConfig    `yaml:"proxy"`
 }
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatalf("Fatal error: %v", err)
+		log.Fatalf("Fatal: %v", err)
 	}
 }
 
 func run() error {
-	ctx := context.Background()
-
 	data, err := os.ReadFile("configs/vektor.yaml")
 	if err != nil {
 		return err
@@ -32,31 +40,37 @@ func run() error {
 		return err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	store, err := backend.NewBackendStore(ctx, cfg.Backend)
 	if err != nil {
 		return err
 	}
 	defer store.Close()
 
-	key := "vektor:smoke"
-	val := []byte("smoke_test_passed")
+	eventCh := make(chan events.AccessEvent, 100000)
 
-	log.Printf("Setting key %s to %s", key, val)
-	if err := store.Set(ctx, key, val); err != nil {
+	server := proxy.NewServer(cfg.Proxy.ListenAddr, store, eventCh)
+	if err := server.Start(); err != nil {
 		return err
 	}
 
-	log.Printf("Getting key %s", key)
-	fetched, err := store.Get(ctx, key)
-	if err != nil {
-		return err
-	}
+	go func() {
+		for range eventCh {
+		}
+	}()
 
-	if string(fetched) == string(val) {
-		log.Println("Smoke test completed successfully. Data matched.")
-	} else {
-		log.Printf("Smoke test failed. Data mismatch. Expected %s, got %s", string(val), string(fetched))
-	}
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	fmt.Printf("Vektor proxy listening on %s\n", cfg.Proxy.ListenAddr)
+
+	<-sigCh
+
+	fmt.Println("\nShutting down proxy...")
+	server.Stop()
+	close(eventCh)
 
 	return nil
 }
