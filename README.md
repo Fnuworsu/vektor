@@ -4,7 +4,7 @@ Vektor is a high-throughput, latency-optimized predictive prefetch engine for Re
 
 ## Architecture
 
-<img src="image.png" width="200" height="200" alt="Vektor Architecture">
+<img src="image.png" width="100" height="200" alt="Vektor Architecture">
 
 The system is decoupled across an FFI (Foreign Function Interface) boundary to maximize throughput and isolate GC (Garbage Collection) overhead:
 
