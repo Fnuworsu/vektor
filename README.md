@@ -14,6 +14,7 @@ The system is decoupled across an FFI boundary to maximize throughput and isolat
 
 ## Internals
 
+- **Monolithic State over Distributed Gossip:** Vektor intentionally eschews horizontal network distribution and gossip protocols. Sharing Markov probability matrices across a cluster introduces microsecond serialization serialization limits and eventual consistency fragmentation, physically destroying the sub-200ns prediction bounds required for valid cache warming.
 - **Stochastic Prefetching:** Markov Chain probability matrices dictate cache ingestion over static heuristics (e.g. LRU).
 - **Lock-Free Concurrency:** `std::atomic` primitives and `memory_order_acquire`/`release` semantics eliminate OS-level thread blocking across execution boundaries.
 - **Cache-Line Alignment:** 64-byte `alignas(64)` padding prevents false sharing contention across physical CPU cache lines.
