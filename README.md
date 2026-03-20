@@ -12,6 +12,19 @@ The system is strictly decoupled across an FFI boundary to maximize throughput a
 - **Coordinator Pool:** Predictions exceeding the operational threshold fire native CGO callbacks back into deeply buffered Go channels. Custom thread-safe atomic pointer registries bypass Go's conservative `cgocheck` constraints. The load is structurally shed utilizing bounded Goroutine worker scaling.
 - **Control Plane:** An internal gRPC server exposing operational analytics and dynamic hot-tuning configuration.
 
+## Concepts Applied
+
+The Vektor codebase functions as an intersection of distributed infrastructure routing and low-level performance tuning. The applied concepts include:
+
+- **Probabilistic Prefetching:** Caching algorithms driven by Markov Chains rather than static heuristics (e.g., LRU), proactively pulling future working sets into memory.
+- **Lock-Free Structuring:** Utilization of pure deterministic `std::atomic` primitives and strict `memory_order` semantics (acquire/release) to prevent OS-level thread blocking across boundaries.
+- **Hardware-Aware Memory Profiling:** Explicitly enforcing 64-byte `alignas(64)` hardware cache-lines to eliminate false sharing contention across physical CPU cores.
+- **FFI Pointer Registration:** Safely bridging automatic garbage-collected environments (Go) with unmanaged process boundaries (C/C++) while overriding aggressive `cgocheck` validation panics.
+- **Protocol Interception:** Direct TCP packet multiplexing and manual binary decoding of the unstructured RESP (Redis Serialization Protocol) format entirely at the wire level.
+- **Backend Backpressure:** Protecting the target datastore via deep buffer staging and static Goroutine worker pools to forcefully prevent prefetch avalanches and system denial-of-service.
+- **Deterministic Race Validation:** Implementation of Clang Thread Sanitizer (TSAN) pipelines to mathematically guarantee against data-race violations during high-concurrency event loops.
+- **Dynamic Remote Method Invocation:** Leveraging Protobuf and gRPC layers for stateless operational telemetry streaming and boundary override injection.
+
 ## Requirements
 
 - Go 1.22+
