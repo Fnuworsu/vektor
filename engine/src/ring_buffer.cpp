@@ -1,3 +1,5 @@
 #include "ring_buffer.h"
 
-void _vektor_ring_buffer_dummy() {}
+namespace {
+    [[maybe_unused]] int ring_buffer_impl = 0;
+}
