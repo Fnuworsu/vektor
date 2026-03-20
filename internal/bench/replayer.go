@@ -1,8 +1,10 @@
 package bench
 
 import (
+	"bufio"
 	"context"
-	"encoding/csv"
+	"encoding/binary"
+	"io"
 	"os"
 	"sync"
 	"time"
@@ -29,18 +31,30 @@ func NewReplayer(addr string, workers int, rate int, tracePath string) (*Replaye
 	}
 	defer f.Close()
 
-	r := csv.NewReader(f)
-	records, err := r.ReadAll()
-	if err != nil {
-		return nil, err
-	}
+	var events []Event
+	r := bufio.NewReader(f)
 
-	events := make([]Event, 0, len(records))
-	for i, rec := range records {
-		if i == 0 && rec[1] == "key" {
-			continue
+	for {
+		var tsBytes [8]byte
+		if _, err := io.ReadFull(r, tsBytes[:]); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
 		}
-		events = append(events, Event{Key: rec[1]})
+
+		var lenBytes [2]byte
+		if _, err := io.ReadFull(r, lenBytes[:]); err != nil {
+			return nil, err
+		}
+
+		keyLen := binary.LittleEndian.Uint16(lenBytes[:])
+		keyBytes := make([]byte, keyLen)
+		if _, err := io.ReadFull(r, keyBytes); err != nil {
+			return nil, err
+		}
+
+		events = append(events, Event{Key: string(keyBytes)})
 	}
 
 	return &Replayer{

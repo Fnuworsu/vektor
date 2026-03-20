@@ -1,13 +1,13 @@
 package main
 
 import (
-	"encoding/csv"
+	"bufio"
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -15,7 +15,7 @@ func main() {
 	mode := flag.String("type", "sequential", "Trace type: sequential or zipfian")
 	events := flag.Int("events", 100000, "Number of events")
 	keys := flag.Int("keys", 1000, "Number of unique keys")
-	out := flag.String("out", "trace.csv", "Output file")
+	out := flag.String("out", "trace.bin", "Output file")
 	flag.Parse()
 
 	f, err := os.Create(*out)
@@ -24,10 +24,8 @@ func main() {
 	}
 	defer f.Close()
 
-	w := csv.NewWriter(f)
+	w := bufio.NewWriter(f)
 	defer w.Flush()
-
-	w.Write([]string{"timestamp_ns", "key"})
 
 	r := rand.New(rand.NewSource(42))
 	zipf := rand.NewZipf(r, 1.1, 1.0, uint64(*keys-1))
@@ -48,7 +46,16 @@ func main() {
 			keyStr = fmt.Sprintf("key_%d", keyIdx)
 		}
 
-		w.Write([]string{strconv.FormatInt(ts, 10), keyStr})
+		tsBytes := make([]byte, 8)
+		binary.LittleEndian.PutUint64(tsBytes, uint64(ts))
+		w.Write(tsBytes)
+
+		lenBytes := make([]byte, 2)
+		binary.LittleEndian.PutUint16(lenBytes, uint16(len(keyStr)))
+		w.Write(lenBytes)
+
+		w.WriteString(keyStr)
+
 		ts += 1000000
 	}
 }
