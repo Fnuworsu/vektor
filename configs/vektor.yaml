@@ -1,6 +1,6 @@
 backend:
   type: redis
-  address: "localhost:6379"
+  address: "redis:6379"
   password: ""
   db: 0
   dial_timeout_ms: 500
@@ -9,11 +9,12 @@ backend:
   pool_size: 20
 
 proxy:
-  listen_addr: ":6380"
+  listen_addr: "0.0.0.0:6380"
+  grpc_addr: "0.0.0.0:9090"
 
 coordinator:
   prefetch_workers: 8
-  prefetch_threshold: 0.65
+  prefetch_threshold: 0.665
   max_prefetch_queue_depth: 1024
 
 engine:

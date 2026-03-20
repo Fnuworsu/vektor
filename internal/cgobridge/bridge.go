@@ -20,6 +20,7 @@ import "C"
 
 import (
 	"errors"
+	"log"
 	"sync"
 	"time"
 	"unsafe"
@@ -66,6 +67,8 @@ func prefetchCallbackCGO(key *C.char, prob C.double, userdata unsafe.Pointer) {
 	}
 	e := val.(*cgoEngine)
 
+	k := C.GoString(key)
+    log.Printf("VEKTOR CGO BOUNCE: Engine predicted [%s] with prob %f", k, float64(prob))
 	select {
 	case e.candCh <- PrefetchCandidate{
 		Key:         C.GoString(key),
