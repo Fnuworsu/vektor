@@ -16,6 +16,7 @@ public:
 
     void observe(const std::vector<std::string>& history, const std::string& next_key);
     std::vector<Prediction> predict(const std::vector<std::string>& history) const;
+    size_t get_state_count() const { return states_.size(); }
     size_t size() const;
 
 private:

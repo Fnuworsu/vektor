@@ -2,6 +2,7 @@
 #define VEKTOR_ENGINE_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +21,8 @@ void vektor_engine_set_callback(vektor_engine_t* engine, void(*cb)(const char* k
 void vektor_engine_start(vektor_engine_t* engine);
 
 void vektor_engine_stop(vektor_engine_t* engine);
+
+size_t vektor_engine_get_tracked_keys(vektor_engine_t* engine);
 
 #ifdef __cplusplus
 }

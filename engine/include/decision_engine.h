@@ -24,6 +24,7 @@ public:
     void set_callback(PrefetchCallback cb, void* userdata);
     void start();
     void stop();
+    size_t get_tracked_keys() const { return markov_chain_.get_state_count(); }
 
 private:
     void loop();

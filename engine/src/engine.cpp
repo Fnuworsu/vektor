@@ -29,8 +29,14 @@ void vektor_engine_start(vektor_engine_t* engine) {
 }
 
 void vektor_engine_stop(vektor_engine_t* engine) {
-    if (!engine) return;
-    reinterpret_cast<DecisionEngine*>(engine)->stop();
+    if (engine) {
+        reinterpret_cast<DecisionEngine*>(engine)->stop();
+    }
+}
+
+size_t vektor_engine_get_tracked_keys(vektor_engine_t* engine) {
+    if (!engine) return 0;
+    return reinterpret_cast<DecisionEngine*>(engine)->get_tracked_keys();
 }
 
 }

@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package vektor;
+
+option go_package = "github.com/Fnuworsu/vektor/proto";
+
+service ControlPlane {
+    rpc GetStats(GetStatsRequest) returns (GetStatsResponse);
+    rpc SetPolicy(SetPolicyRequest) returns (SetPolicyResponse);
+    rpc GetModelState(GetModelStateRequest) returns (GetModelStateResponse);
+}
+
+message GetStatsRequest {}
+
+message GetStatsResponse {
+    uint64 prefetch_issued = 1;
+    uint64 prefetch_hit = 2;
+    uint64 prefetch_miss = 3;
+    uint64 prefetch_dropped = 4;
+    uint64 total_gets_proxied = 5;
+}
+
+message SetPolicyRequest {
+    double threshold = 1;
+    int32 workers = 2;
+}
+
+message SetPolicyResponse {
+    bool success = 1;
+}
+
+message GetModelStateRequest {}
+
+message GetModelStateResponse {
+    uint64 tracked_keys_count = 1;
+}

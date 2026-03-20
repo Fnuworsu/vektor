@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,14 +16,17 @@ import (
 	"github.com/Fnuworsu/vektor/internal/coordinator/policy"
 	"github.com/Fnuworsu/vektor/internal/coordinator/tracker"
 	"github.com/Fnuworsu/vektor/internal/events"
+	vgrpc "github.com/Fnuworsu/vektor/internal/grpc"
 	"github.com/Fnuworsu/vektor/internal/proxy"
+	"google.golang.org/grpc"
 	"gopkg.in/yaml.v3"
 )
 
 type FullConfig struct {
 	Backend backend.Config `yaml:"backend"`
-	Proxy struct {
+	Proxy   struct {
 		ListenAddr string `yaml:"listen_addr"`
+		GrpcAddr   string `yaml:"grpc_addr"`
 	} `yaml:"proxy"`
 	Coordinator struct {
 		PrefetchWorkers       int     `yaml:"prefetch_workers"`
@@ -77,6 +81,21 @@ func run() error {
 		return err
 	}
 
+	grpcAddr := cfg.Proxy.GrpcAddr
+	if grpcAddr == "" {
+		grpcAddr = ":9090"
+	}
+	lis, err := net.Listen("tcp", grpcAddr)
+	if err != nil {
+		return err
+	}
+	grpcServer := grpc.NewServer()
+	vgrpc.RegisterServer(grpcServer, t, p, engine)
+	go func() {
+		fmt.Printf("Vektor gRPC control plane listening on %s\n", grpcAddr)
+		_ = grpcServer.Serve(lis)
+	}()
+
 	go func() {
 		for ev := range eventCh {
 			t.CheckHit(ev.Key)
@@ -91,6 +110,7 @@ func run() error {
 	<-sigCh
 
 	fmt.Println("\nShutting down...")
+	grpcServer.GracefulStop()
 	server.Stop()
 	close(eventCh)
 

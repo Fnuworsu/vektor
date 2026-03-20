@@ -100,3 +100,7 @@ func (e *cgoEngine) PushEvent(key string, ts time.Time) error {
 func (e *cgoEngine) Candidates() <-chan PrefetchCandidate {
 	return e.candCh
 }
+
+func (e *cgoEngine) GetModelState() uint64 {
+	return uint64(C.vektor_engine_get_tracked_keys(e.engine))
+}

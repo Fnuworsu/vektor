@@ -12,4 +12,5 @@ type Engine interface {
 	Stop()
 	PushEvent(key string, ts time.Time) error
 	Candidates() <-chan PrefetchCandidate
+	GetModelState() uint64
 }
