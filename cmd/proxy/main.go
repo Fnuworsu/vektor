@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/Fnuworsu/vektor/internal/backend"
+	"github.com/Fnuworsu/vektor/internal/cgobridge"
 	"github.com/Fnuworsu/vektor/internal/events"
 	"github.com/Fnuworsu/vektor/internal/proxy"
 	"gopkg.in/yaml.v3"
@@ -18,9 +19,20 @@ type ProxyConfig struct {
 	ListenAddr string `yaml:"listen_addr"`
 }
 
+type EngineConfig struct {
+	MarkovOrder    int `yaml:"markov_order"`
+	MaxTrackedKeys int `yaml:"max_tracked_keys"`
+}
+
+type CoordinatorConfig struct {
+	PrefetchThreshold float64 `yaml:"prefetch_threshold"`
+}
+
 type FullConfig struct {
-	Backend backend.Config `yaml:"backend"`
-	Proxy   ProxyConfig    `yaml:"proxy"`
+	Backend     backend.Config    `yaml:"backend"`
+	Proxy       ProxyConfig       `yaml:"proxy"`
+	Engine      EngineConfig      `yaml:"engine"`
+	Coordinator CoordinatorConfig `yaml:"coordinator"`
 }
 
 func main() {
@@ -49,6 +61,10 @@ func run() error {
 	}
 	defer store.Close()
 
+	engine := cgobridge.NewEngine(cfg.Engine.MarkovOrder, cfg.Engine.MaxTrackedKeys, cfg.Coordinator.PrefetchThreshold)
+	engine.Start()
+	defer engine.Stop()
+
 	eventCh := make(chan events.AccessEvent, 100000)
 
 	server := proxy.NewServer(cfg.Proxy.ListenAddr, store, eventCh)
@@ -57,7 +73,13 @@ func run() error {
 	}
 
 	go func() {
-		for range eventCh {
+		for ev := range eventCh {
+			_ = engine.PushEvent(ev.Key, ev.OccurredAt)
+		}
+	}()
+
+	go func() {
+		for range engine.Candidates() {
 		}
 	}()
 

@@ -1,0 +1,2 @@
+-Iengine/include
+-std=c++17
