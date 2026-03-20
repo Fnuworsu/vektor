@@ -4,6 +4,8 @@ Vektor is a high-throughput, latency-optimized predictive prefetch engine for Re
 
 ## Architecture
 
+![alt text](image.png)
+
 The system is decoupled across an FFI (Foreign Function Interface) boundary to maximize throughput and isolate GC (Garbage Collection) overhead:
 
 - **Proxy Layer (Go):** A concurrent TCP router implementing custom RESP parsing. It multiplexes client database requests downstream to Redis while asynchronously cloning access telemetry.
