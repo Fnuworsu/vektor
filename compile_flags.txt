@@ -1,2 +1,3 @@
--Iengine/include
+-I/Users/fnuworsu/Personal projects/Vektor/engine/include
 -std=c++17
+
