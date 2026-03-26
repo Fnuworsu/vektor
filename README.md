@@ -54,3 +54,6 @@ grpcurl -plaintext localhost:9090 vektor.ControlPlane/GetStats
 - `make test`: Executes TSAN-verified C++ tests and localized Go network suites.
 - `make proto`: Regenerates gRPC and Protobuf bindings.
 - `make bench`: Executes custom trace replay simulations extracting baseline latency distributions.
+
+## Further Reading
+- [Prediction model research](docs/prediction-model-research.md): open-source alternatives to the current first-order Markov predictor, with rollout guidance for Vektor's latency constraints.
