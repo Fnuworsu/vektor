@@ -1,7 +1,5 @@
 # Prediction Model Research
 
-## Why This Document Exists
-
 Vektor already has a working predictor: a bounded first-order Markov chain in the C++ engine. The question is not whether there are more sophisticated models in the world. There are. The real question is which open-source models are plausible upgrades for this specific system without breaking the reason the system exists in the first place: cheap, fast, predictable prefetch decisions on the request path.
 
 That matters because "better model" is easy to say and expensive to mean. In this codebase, every extra allocation, branch, cache miss, serialization hop, and foreign-runtime dependency has to earn its place.
